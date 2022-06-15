@@ -34,13 +34,13 @@
 
         <!--    test dependencies   -->
 
-        <dependency>
-            <groupId>com.dtstack.flink</groupId>
-            <artifactId>sql.core</artifactId>
-            <version>${sql.core.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.dtstack.flink</groupId>-->
+<!--            <artifactId>sql.core</artifactId>-->
+<!--            <version>${sql.core.version}</version>-->
+<!--            <type>test-jar</type>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
     </dependencies>
 
     <build>
