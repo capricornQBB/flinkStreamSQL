@@ -1,0 +1,13 @@
+```text
+plugins=(
+    colored-man-pages
+    colorize
+    copypath
+    git
+    sudo
+    vi-mode
+    z
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+)
+```
