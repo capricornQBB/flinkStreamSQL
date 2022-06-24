@@ -20,8 +20,8 @@ sh submit.sh \
   -flinkconf /Users/tanweiquan/envR/server/flink-1.10.1/conf \
   -yarnconf /Users/tanweiquan/envR/server/hadoop-2.7.3/etc/hadoop \
   -flinkJarPath /Users/tanweiquan/envR/server/flink-1.10.1/lib \
-  -pluginLoadMode shipfile
-  -confProp {\"time.characteristic\":\"eventTime\",\"logLevel\":\"info\"}
+  -pluginLoadMode shipfile \
+  -confProp {"time.characteristic":"eventTime"}
   -queue c
 ```
 
