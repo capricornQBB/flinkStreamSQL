@@ -12,15 +12,26 @@ VERSION:
 */
 
 
-create AGGREGATE function CollectSet2Str with udf.CollectSet2StrFunction;
+create
+AGGREGATE function CollectSet2Str
+with udf.CollectSet2StrFunction;
 
 CREATE TABLE readom_ods_binlog
 (
-    time            timestamp   as rtime,
-    topic           varchar,
-    data.uid        varchar     as uid,
-    data.novel_id   varchar     as novel_id,
-    data.status     varchar     as status,
+    time  timestamp as rtime,
+    topic varchar, data
+    .
+    uid
+    varchar as
+    uid, data
+    .
+    novel_id
+    varchar as
+    novel_id, data
+    .
+    status
+    varchar as
+    status,
     WATERMARK FOR rtime as withOffset(rtime, 2000)
 ) with (
       type = 'kafka11',
@@ -36,11 +47,17 @@ CREATE TABLE readom_ods_binlog
 
 CREATE TABLE readom_ods_applog_action
 (
-    md_eid                   varchar,
-    uid                      varchar,
-    md_einfo.novel_id        varchar         as novel_id,
-    md_einfo.readduring      bigint          as readduring, -- 毫秒
-    record_time              bigint,
+    md_eid      varchar,
+    uid         varchar, md_einfo
+    .
+    novel_id
+    varchar as
+    novel_id, md_einfo
+    .
+    readduring
+    bigint as
+    readduring, -- 毫秒
+    record_time bigint,
     WATERMARK FOR record_time as withOffset(record_time, 2000)
 ) with (
       type = 'kafka11',
@@ -56,11 +73,18 @@ CREATE TABLE readom_ods_applog_action
 
 CREATE TABLE readom_ods_applog_common
 (
-    md_eid                   varchar,
-    uid                      varchar,
-    md_einfo.novelid         varchar     as novelid,    -- readom_app_add_book
-    md_einfo.novel_id        varchar     as novel_id,   -- readom_app_readguide_collect
-    record_time              bigint,
+    md_eid      varchar,
+    uid         varchar, md_einfo
+    .
+    novelid
+    varchar as
+    novelid,  -- readom_app_add_book
+    md_einfo
+    .
+    novel_id
+    varchar as
+    novel_id, -- readom_app_readguide_collect
+    record_time bigint,
     WATERMARK FOR record_time as withOffset(record_time, 2000)
 ) with (
       type = 'kafka11',
@@ -76,13 +100,20 @@ CREATE TABLE readom_ods_applog_common
 
 create table cs_readom_ads_userprofile_recall
 (
-    _version  				int,
-    _source   				varchar,
-    _app      				varchar,
-    _version_type  			varchar,
-    _id             		varchar,
-    _time           		varchar,
-     u_prefer_item_h         varchar
+    _
+    version
+    int, _
+    source
+    varchar, _
+    app
+    varchar, _
+    version_type
+    varchar, _
+    id
+    varchar, _
+    time
+    varchar,
+    u_prefer_item_h varchar
 ) with (
       type = 'console',
       parallelism = '1'
@@ -90,13 +121,20 @@ create table cs_readom_ads_userprofile_recall
 
 create table kfk_readom_ads_userprofile_recall
 (
-    _version  				int,
-    _source   				varchar,
-    _app      				varchar,
-    _version_type  			varchar,
-    _id             		varchar,
-    _time           		varchar,
-     u_prefer_item_h         varchar
+    _
+    version
+    int, _
+    source
+    varchar, _
+    app
+    varchar, _
+    version_type
+    varchar, _
+    id
+    varchar, _
+    time
+    varchar,
+    u_prefer_item_h varchar
 ) with (
     type = 'kafka11',
     bootstrapServers = 'kafka01.dsj.sg.inkept.cn:9092,kafka02.dsj.sg.inkept.cn:9092,kafka03.dsj.sg.inkept.cn:9092',
@@ -108,7 +146,7 @@ create table kfk_readom_ads_userprofile_recall
  );
 
 CREATE view v_readom_ads_userprofile_recall as
-select 2             						_version
+select 2 _version
       , 'kfk_readom_ads_profile_recall'     _source
  	  , 'readom'      						_app
       , 'userprofile'           			_version_type
@@ -117,18 +155,28 @@ select 2             						_version
       , CollectSet2Str(item) 				u_prefer_item_h
 from (
          SELECT uid
-              , date_format(ts_end, 'yyyyMMddHHmmss')                       ts_end
-              , concat_ws(':', novel_id, cast(score as varchar))            item
-              , row_number() over (partition by uid order by score desc )   row_num
+              , date_format(ts_end, 'yyyyMMddHHmmss')                     ts_end
+              , concat_ws(':', novel_id, cast(score as varchar))          item
+              , row_number() over (partition by uid order by score desc ) row_num
          FROM (select uid
                     , novel_id
-                    , sum(score)                                                 score
+                    , sum(buy_score)
+                 + case
+                       when sum(readduring) > 0 and sum(readduring) <= 60 * 1000 then 1
+                       when sum(readduring) > 60 * 1000 and sum(readduring) <= 7 * 60 * 1000 then 2
+                       when sum(readduring) > 7 * 60 * 1000 and sum(readduring) <= 60 * 60 * 1000 then 4
+                       when sum(readduring) > 60 * 60 * 1000 then 10
+                       else 0
+                          end
+                 + max(collect_score) * 4                                        score
                     , HOP_START(ROWTIME, INTERVAL '1' MINUTE, INTERVAL '5' HOUR) ts_start
                     , HOP_END(ROWTIME, INTERVAL '1' MINUTE, INTERVAL '5' HOUR)   ts_end
                from (
                         select uid
                              , novel_id
-                             , 10 score
+                             , 0  readduring
+                             , 10 buy_score
+                             , 0  collect_score
                              , ROWTIME
                         from readom_ods_binlog
                         WHERE topic = 'chapter_buy_record' -- 付费
@@ -140,13 +188,9 @@ from (
 
                         select uid
                              , novel_id
-                             , case
-                                   when readduring >= 0 and readduring <= 60 * 1000 then 1
-                                   when readduring > 60 * 1000 and readduring <= 7 * 60 * 1000 then 2
-                                   when readduring > 7 * 60 * 1000 and readduring <= 60 * 60 * 1000 then 3
-                                   when readduring > 60 * 60 * 1000 then 4
-                                   else 0
-                            end score
+                             , readduring
+                             , 0 buy_score
+                             , 0 collect_score
                              , ROWTIME
                         from readom_ods_applog_action
                         where md_eid = 'readom_app_reading_time' -- 阅读时长
@@ -157,7 +201,9 @@ from (
 
                         select uid
                              , COALESCE(novel_id, novelid) novel_id
-                             , 4                           score
+                             , 0                           readduring
+                             , 4                           buy_score
+                             , 1                           collect_score
                              , ROWTIME
                         from readom_ods_applog_common
                         where md_eid in ('readom_app_add_book', 'readom_app_readguide_collect') -- 收藏
@@ -167,7 +213,7 @@ from (
                group by HOP(ROWTIME, INTERVAL '1' MINUTE, INTERVAL '5' HOUR), uid, novel_id
               ) tt
      ) ttt
-where row_num <= 10
+where row_num <= 20
 group by uid
        , ts_end
 ;
@@ -177,23 +223,23 @@ insert
 into kfk_readom_ads_userprofile_recall
 select
     _version
-        ,_source
-        ,_app
-        ,_version_type
-        ,_id
-        ,_time
-        ,u_prefer_item_h
+        , _source
+        , _app
+        , _version_type
+        , _id
+        , _ time
+        , u_prefer_item_h
 from v_readom_ads_userprofile_recall;
 
 insert
 into cs_readom_ads_userprofile_recall
 select
     _version
-        ,_source
-        ,_app
-        ,_version_type
-        ,_id
-        ,_time
-        ,u_prefer_item_h
+        , _source
+        , _app
+        , _version_type
+        , _id
+        , _ time
+        , u_prefer_item_h
 from v_readom_ads_userprofile_recall
 ;
