@@ -3,5 +3,7 @@ hadoop=2.7.3
 hbase=2.2.5
 kafka=2.11-0.11.0.3
 zookeeper=3.7.1
-flink=1.10.1
+flink=1.10.
+hive=2.3.8
+spark=3.3.0
 ```

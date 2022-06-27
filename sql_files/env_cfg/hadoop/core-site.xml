@@ -17,16 +17,47 @@
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
-<property>
-     <name>fs.defaultFS</name>
-     <value>hdfs://localhost:9000</value>
-</property>
-<property>
-     <name>hadoop.tmp.dir</name>
-     <value>file:/Users/tanweiquan/envR/server/tmp/hadoop/core</value>
-</property>
-<property>
-     <name>fs.trash.interval</name>
-     <value>1440</value>
-</property>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://localhost:9000</value>
+    </property>
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>file:/Users/tanweiquan/envR/server/tmp/hadoop/core</value>
+    </property>
+    <property>
+        <name>fs.trash.interval</name>
+        <value>1440</value>
+    </property>
+
+    <property>
+        <name>dfs.permissions.enabled</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.root.hosts</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.root.groups</name>
+        <value>*</value>
+    </property>
+
+    <property>
+        <name>hadoop.proxyuser.tanwequan.hosts</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.tanwequan.groups</name>
+        <value>*</value>
+    </property>
+
+    <property>
+        <name>hadoop.proxyuser.hive.hosts</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.hive.groups</name>
+        <value>*</value>
+    </property>
 </configuration>
