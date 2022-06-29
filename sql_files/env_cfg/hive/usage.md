@@ -17,7 +17,7 @@ beeline -u jdbc:hive2://127.0.0.1:10000 -n root
 !connect jdbc:hive2://127.0.0.1:10000
 ```
 
-```hiveql
+```hiveqlc
 create table if not exists test.t_user
 (
     id   int,
